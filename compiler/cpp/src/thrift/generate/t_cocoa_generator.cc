@@ -450,7 +450,8 @@ void t_cocoa_generator::generate_enum(t_enum* tenum) {
 void t_cocoa_generator::generate_consts(std::vector<t_const*> consts) {
   std::ostringstream const_interface;
 
-  const_interface << "FOUNDATION_EXPORT NSString *" << cocoa_prefix_ << capitalize(program_name_) << "ErrorDomain;" << endl
+  const_interface << "FOUNDATION_EXPORT NSString *" << (nullability_ ? " _Nonnull " : "")
+                  << cocoa_prefix_ << capitalize(program_name_) << "ErrorDomain;" << endl
                   << endl;
 
 
@@ -461,7 +462,11 @@ void t_cocoa_generator::generate_consts(std::vector<t_const*> consts) {
   for (c_iter = consts.begin(); c_iter != consts.end(); ++c_iter) {
     t_type* type = (*c_iter)->get_type()->get_true_type();
     if (!type->is_container() && !type->is_struct()) {
-      const_interface << "FOUNDATION_EXPORT " << type_name(type) << " "
+      std::string nullable = "";
+      if (nullability_ && type_is_reference((*c_iter)->get_type())) {
+        nullable = " _Nonnull";
+      }
+      const_interface << "FOUNDATION_EXPORT " << type_name(type) << nullable << " "
                       << cocoa_prefix_ << capitalize((*c_iter)->get_name()) << ";" << endl;
     }
     else {
@@ -641,7 +646,18 @@ void t_cocoa_generator::generate_cocoa_struct_initializer_signature(ofstream& ou
     } else {
       out << (*m_iter)->get_name();
     }
-    out << ": (" << type_name((*m_iter)->get_type()) << ") " << (*m_iter)->get_name();
+
+    std::string nullable = "";
+    if (nullability_ && type_is_reference((*m_iter)->get_type())) {
+      if ((*m_iter)->get_req() != t_field::T_OPTIONAL) {
+        nullable = "nonnull ";
+      } else {
+        nullable = "nullable ";
+      }
+    }
+
+
+    out << ": (" << nullable << type_name((*m_iter)->get_type()) << ") " << (*m_iter)->get_name();
     ++m_iter;
     if (m_iter != members.end()) {
       out << " ";
@@ -3046,7 +3062,17 @@ string t_cocoa_generator::declare_property(t_field* tfield) {
     // Let Objective-C know not to return +1 for object pointers
     if (type_is_reference(tfield->get_type())) {
       render << endl;
-      render << "- (" + type_name(tfield->get_type()) + ") " + decapitalize(tfield->get_name()) + " __attribute__((objc_method_family(none)));";
+
+      std::string nullable = "";
+      if (nullability_) {
+        if (tfield->get_req() != t_field::T_OPTIONAL) {
+          nullable = "nonnull ";
+        } else {
+          nullable = "nullable ";
+        }
+      }
+
+      render << "- (" + nullable + type_name(tfield->get_type()) + ") " + decapitalize(tfield->get_name()) + " __attribute__((objc_method_family(none)));";
     }
   }
 
