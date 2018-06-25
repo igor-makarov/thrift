@@ -58,6 +58,8 @@ public:
     promise_kit_ = false;
     debug_descriptions_ = false;
     pods_ = false;
+    mutable_collections_ = true;
+    nullability_ = false;
     for( iter = parsed_options.begin(); iter != parsed_options.end(); ++iter) {
       if( iter->first.compare("log_unexpected") == 0) {
         log_unexpected_ = true;
@@ -71,6 +73,10 @@ public:
         debug_descriptions_ = true;
       } else if( iter->first.compare("pods") == 0) {
         pods_ = true;
+      } else if( iter->first.compare("immutable_collections") == 0) {
+        mutable_collections_ = false;
+      } else if( iter->first.compare("nullability") == 0) {
+        nullability_ = true;
       } else {
         throw "unknown option cocoa:" + iter->first;
       }
@@ -238,7 +244,7 @@ public:
   std::string getter_name(string field_name);
   std::string setter_name(string field_name);
 
-  bool type_can_be_null(t_type* ttype) {
+  bool type_is_reference(t_type* ttype) {
     ttype = get_true_type(ttype);
 
     return ttype->is_container() || ttype->is_struct() || ttype->is_xception()
@@ -263,6 +269,8 @@ private:
   bool promise_kit_;
   bool debug_descriptions_;
   bool pods_;
+  bool mutable_collections_;
+  bool nullability_;
 };
 
 /**
@@ -622,7 +630,11 @@ void t_cocoa_generator::generate_cocoa_struct_initializer_signature(ofstream& ou
                                                                     t_struct* tstruct) {
   const vector<t_field*>& members = tstruct->get_members();
   vector<t_field*>::const_iterator m_iter;
-  indent(out) << "- (instancetype) initWith";
+  if (nullability_) {
+    indent(out) << "- (nonnull instancetype) initWith";
+  } else {
+    indent(out) << "- (instancetype) initWith";
+  }
   for (m_iter = members.begin(); m_iter != members.end();) {
     if (m_iter == members.begin()) {
       out << capitalize((*m_iter)->get_name());
@@ -667,7 +679,7 @@ void t_cocoa_generator::generate_cocoa_struct_init_with_coder_method(ofstream& o
         << endl;
     scope_up(out);
     out << indent() << "_" << (*m_iter)->get_name() << " = ";
-    if (type_can_be_null(t)) {
+    if (type_is_reference(t)) {
       out << "[decoder decodeObjectForKey: @\"" << (*m_iter)->get_name() << "\"];"
           << endl;
     } else if (t->is_enum()) {
@@ -732,7 +744,7 @@ void t_cocoa_generator::generate_cocoa_struct_encode_with_coder_method(ofstream&
     t_type* t = get_true_type((*m_iter)->get_type());
     out << indent() << "if (_" << (*m_iter)->get_name() << "IsSet)" << endl;
     scope_up(out);
-    if (type_can_be_null(t)) {
+    if (type_is_reference(t)) {
       out << indent() << "[encoder encodeObject: _" << (*m_iter)->get_name() << " forKey: @\""
           << (*m_iter)->get_name() << "\"];" << endl;
     } else if (t->is_enum()) {
@@ -797,7 +809,7 @@ void t_cocoa_generator::generate_cocoa_struct_copy_method(ofstream& out, t_struc
     t_type* t = get_true_type((*m_iter)->get_type());
     out << indent() << "if (_" << (*m_iter)->get_name() << "IsSet)" << endl;
     scope_up(out);
-    if (type_can_be_null(t)) {
+    if (type_is_reference(t)) {
       out << indent() << "val." << (*m_iter)->get_name() << " = [self." << (*m_iter)->get_name() << " copy];";
     } else {
       out << indent() << "val." << (*m_iter)->get_name() << " = self." << (*m_iter)->get_name() << ";";
@@ -829,7 +841,7 @@ void t_cocoa_generator::generate_cocoa_struct_hash_method(ofstream& out, t_struc
         << "IsSet ? 2654435761 : 0;" << endl;
     out << indent() << "if (_" << (*m_iter)->get_name() << "IsSet)" << endl;
     scope_up(out);
-    if (type_can_be_null(t)) {
+    if (type_is_reference(t)) {
       out << indent() << "hash = (hash * 31) ^ [_" << (*m_iter)->get_name() << " hash];" << endl;
     } else {
       out << indent() << "hash = (hash * 31) ^ [@(_" << (*m_iter)->get_name() << ") hash];"
@@ -882,7 +894,7 @@ void t_cocoa_generator::generate_cocoa_struct_is_equal_method(ofstream& out, t_s
     for (m_iter = members.begin(); m_iter != members.end(); ++m_iter) {
       t_type* t = get_true_type((*m_iter)->get_type());
       string name = (*m_iter)->get_name();
-      if (type_can_be_null(t)) {
+      if (type_is_reference(t)) {
         out << indent() << "if ((_" << name << "IsSet != other->_" << name << "IsSet) ||" << endl
             << indent() << "    "
             << "(_" << name << "IsSet && "
@@ -1124,7 +1136,7 @@ void t_cocoa_generator::generate_cocoa_struct_writer(ofstream& out, t_struct* ts
   for (f_iter = fields.begin(); f_iter != fields.end(); ++f_iter) {
     out << indent() << "if (_" << (*f_iter)->get_name() << "IsSet) {" << endl;
     indent_up();
-    bool null_allowed = type_can_be_null((*f_iter)->get_type());
+    bool null_allowed = type_is_reference((*f_iter)->get_type());
     if (null_allowed) {
       out << indent() << "if (_" << (*f_iter)->get_name() << " != nil) {" << endl;
       indent_up();
@@ -1184,7 +1196,7 @@ void t_cocoa_generator::generate_cocoa_struct_result_writer(ofstream& out, t_str
     out << "(_" << (*f_iter)->get_name() << "IsSet) {" << endl;
     indent_up();
 
-    bool null_allowed = type_can_be_null((*f_iter)->get_type());
+    bool null_allowed = type_is_reference((*f_iter)->get_type());
     if (null_allowed) {
       out << indent() << "if (_" << (*f_iter)->get_name() << " != nil) {" << endl;
       indent_up();
@@ -1273,7 +1285,7 @@ void t_cocoa_generator::generate_cocoa_struct_field_accessor_implementations(ofs
     cap_name[0] = toupper(cap_name[0]);
 
     // Simple setter
-    indent(out) << "- (void) set" << cap_name << ": (" << type_name(type, false, true) << ") " << field_name
+    indent(out) << "- (void) set" << cap_name << ": (" << type_name(type, false, mutable_collections_) << ") " << field_name
                 << " {" << endl;
     indent_up();
     indent(out) << "_" << field_name << " = " << field_name << ";" << endl;
@@ -1284,7 +1296,7 @@ void t_cocoa_generator::generate_cocoa_struct_field_accessor_implementations(ofs
     // Unsetter - do we need this?
     indent(out) << "- (void) unset" << cap_name << " {" << endl;
     indent_up();
-    if (type_can_be_null(type)) {
+    if (type_is_reference(type)) {
       indent(out) << "_" << field_name << " = nil;" << endl;
     }
     indent(out) << "_" << field_name << "IsSet = NO;" << endl;
@@ -1549,7 +1561,7 @@ void t_cocoa_generator::generate_cocoa_service_client_send_function_implementati
   vector<t_field*>::const_iterator fld_iter;
   for (fld_iter = fields.begin(); fld_iter != fields.end(); ++fld_iter) {
     string fieldName = (*fld_iter)->get_name();
-    if (type_can_be_null((*fld_iter)->get_type())) {
+    if (type_is_reference((*fld_iter)->get_type())) {
       out << indent() << "if (" << fieldName << " != nil)";
       scope_up(out);
     }
@@ -1562,7 +1574,7 @@ void t_cocoa_generator::generate_cocoa_service_client_send_function_implementati
 
     out << indent() << "if (![outProtocol writeFieldEnd: __thriftError]) return NO;" << endl;
 
-    if (type_can_be_null((*fld_iter)->get_type())) {
+    if (type_is_reference((*fld_iter)->get_type())) {
       indent_down();
       out << indent() << "}" << endl;
     }
@@ -1586,7 +1598,7 @@ void t_cocoa_generator::generate_cocoa_service_client_recv_function_implementati
   // Open function
   indent(out) << "- (BOOL) recv_" << tfunction->get_name();
   if (!tfunction->get_returntype()->is_void()) {
-    out << ": (" << type_name(tfunction->get_returntype(), false, true) << " *) result ";
+    out << ": (" << type_name(tfunction->get_returntype(), false, mutable_collections_) << " *) result ";
     if (needs_protocol) {
       out << "protocol";
     } else {
@@ -1789,10 +1801,10 @@ void t_cocoa_generator::generate_cocoa_service_client_implementation(ofstream& o
         out << indent() << "if (![self recv_" << (*f_iter)->get_name() << ": __thriftError]) return NO;" << endl;
         out << indent() << "return YES;" << endl;
       } else {
-        out << indent() << type_name((*f_iter)->get_returntype(), false, true) << " __result;" << endl
+        out << indent() << type_name((*f_iter)->get_returntype(), false, mutable_collections_) << " __result;" << endl
             << indent() << "if (![self recv_" << (*f_iter)->get_name() << ": &__result error: __thriftError]) "
             << invalid_return_statement(*f_iter) << endl;
-        if (type_can_be_null((*f_iter)->get_returntype())) {
+        if (type_is_reference((*f_iter)->get_returntype())) {
           out << indent() << "return __result;" << endl;
         } else {
           out << indent() << "return @(__result);" << endl;
@@ -1939,7 +1951,7 @@ void t_cocoa_generator::generate_cocoa_service_client_async_implementation(ofstr
       out << indent() << "resolver(";
       if ((*f_iter)->is_oneway() || (*f_iter)->get_returntype()->is_void()) {
         out << "@YES";
-      } else if (type_can_be_null((*f_iter)->get_returntype())) {
+      } else if (type_is_reference((*f_iter)->get_returntype())) {
         out << "result";
       } else {
         out << "@(result)";
@@ -2093,14 +2105,14 @@ void t_cocoa_generator::generate_cocoa_service_server_implementation(ofstream& o
     out << indent();
     if ((*f_iter)->get_returntype()->is_void()) {
       out << "BOOL";
-    } else if (type_can_be_null((*f_iter)->get_returntype())) {
-      out << type_name((*f_iter)->get_returntype(), false, true);
+    } else if (type_is_reference((*f_iter)->get_returntype())) {
+      out << type_name((*f_iter)->get_returntype(), false, mutable_collections_);
     } else {
       out << "NSNumber *";
     }
     out << " serviceResult = ";
     if ((*f_iter)->get_returntype()->get_true_type()->is_container()) {
-      out << "(" << type_name((*f_iter)->get_returntype(), false, true) << ")";
+      out << "(" << type_name((*f_iter)->get_returntype(), false, mutable_collections_) << ")";
     }
     out << "[service " << funname;
     // supplying arguments
@@ -2634,7 +2646,7 @@ string t_cocoa_generator::element_type_name(t_type* etype) {
 
   t_type* ttype = etype->get_true_type();
 
-  if (etype->is_typedef() && type_can_be_null(ttype)) {
+  if (etype->is_typedef() && type_is_reference(ttype)) {
     return type_name(etype);
   }
 
@@ -3011,13 +3023,20 @@ string t_cocoa_generator::declare_property(t_field* tfield) {
   std::ostringstream render;
   render << "@property (";
 
-  if (type_can_be_null(tfield->get_type())) {
+  if (type_is_reference(tfield->get_type())) {
     render << "strong, ";
+    if (nullability_) {
+      if (tfield->get_req() != t_field::T_OPTIONAL) {
+        render << "nonnull, ";
+      } else {
+        render << "nullable, ";
+      }
+    }
   } else {
     render << "assign, ";
   }
 
-  render << "nonatomic) " << type_name(tfield->get_type(), false, true) << " "
+  render << "nonatomic) " << type_name(tfield->get_type(), false, mutable_collections_) << " "
   << tfield->get_name() << ";";
 
   // Check if the property name is an Objective-C return +1 count signal
@@ -3025,7 +3044,7 @@ string t_cocoa_generator::declare_property(t_field* tfield) {
       (tfield->get_name().length() >= 6 && tfield->get_name().substr(0,6) == "create") ||
       (tfield->get_name().length() >= 5 && tfield->get_name().substr(0,5) == "alloc")) {
     // Let Objective-C know not to return +1 for object pointers
-    if (type_can_be_null(tfield->get_type())) {
+    if (type_is_reference(tfield->get_type())) {
       render << endl;
       render << "- (" + type_name(tfield->get_type()) + ") " + decapitalize(tfield->get_name()) + " __attribute__((objc_method_family(none)));";
     }
@@ -3051,7 +3070,7 @@ string t_cocoa_generator::declare_property_isset(t_field* tfield) {
 string t_cocoa_generator::declare_property_unset(t_field* tfield) {
   return "- (void) unset" + capitalize(tfield->get_name()) + ";";
 }
-
+////
 /**
  * Renders the early out return statement
  *
@@ -3077,7 +3096,7 @@ string t_cocoa_generator::function_signature(t_function* tfunction, bool include
   if (ttype->is_void()) {
     result = "(BOOL)";
   }
-  else if (type_can_be_null(ttype)) {
+  else if (type_is_reference(ttype)) {
     result = "(" + type_name(ttype) + ")";
   }
   else {
@@ -3298,4 +3317,7 @@ THRIFT_REGISTER_GENERATOR(
     "                     Throws exception if any required field is not set.\n"
     "    async_clients:   Generate clients which invoke asynchronously via block syntax.\n"
     "    pods:            Generate imports in Cocopods framework format.\n"
+    "    immutable_collections: \n"
+    "                     Generate collections as immutable (NSArray and not NSMutableArray).\n"
+    "    nullability:     Generate nullability annotations for reference types.\n"
     "    promise_kit:     Generate clients which invoke asynchronously via promises.\n")
