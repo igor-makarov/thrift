@@ -60,6 +60,7 @@ public:
     pods_ = false;
     mutable_collections_ = true;
     nullability_ = false;
+    swift_refinement_  = false;
     for( iter = parsed_options.begin(); iter != parsed_options.end(); ++iter) {
       if( iter->first.compare("log_unexpected") == 0) {
         log_unexpected_ = true;
@@ -77,6 +78,8 @@ public:
         mutable_collections_ = false;
       } else if( iter->first.compare("nullability") == 0) {
         nullability_ = true;
+      } else if( iter->first.compare("swift_refinement") == 0) {
+        swift_refinement_ = true;
       } else {
         throw "unknown option cocoa:" + iter->first;
       }
@@ -118,6 +121,8 @@ public:
   void generate_cocoa_struct_interface(std::ofstream& out,
                                        t_struct* tstruct,
                                        bool is_xception = false);
+  void generate_cocoa_struct_swift_refinement(ofstream& out,
+                                              t_struct* tstruct);
   void generate_cocoa_struct_implementation(std::ofstream& out,
                                             t_struct* tstruct,
                                             bool is_xception = false,
@@ -225,9 +230,13 @@ public:
   std::string cocoa_imports();
   std::string cocoa_thrift_imports();
   std::string type_name(t_type* ttype, bool class_ref = false, bool needs_mutable = false);
+  std::string type_name_swift(t_type* ttype);
   std::string element_type_name(t_type* ttype);
+  std::string element_type_name_swift(t_type* ttype);
   std::string base_type_name(t_base_type* tbase);
+  std::string base_type_name_swift(t_base_type* tbase);
   std::string declare_property(t_field* tfield);
+  std::string declare_property_swift_refinement(t_field* tfield);
   std::string declare_property_isset(t_field* tfield);
   std::string declare_property_unset(t_field* tfield);
   std::string invalid_return_statement(t_function* tfunction);
@@ -251,6 +260,37 @@ public:
            || ttype->is_string();
   }
 
+  bool type_needs_swift_refinement(t_type* ttype) {
+    ttype = get_true_type(ttype);
+
+    if (ttype->is_base_type()) {
+      t_base_type* tbase = (t_base_type*)ttype;
+      switch (tbase->get_base()) {
+      case t_base_type::TYPE_STRING:
+        return false;
+      default:
+        return true;
+      }
+    }
+
+    if (ttype->is_enum()) {
+      return true;
+    }
+
+    if (ttype->is_map()) {
+      t_map *map = (t_map *)ttype;
+      return type_needs_swift_refinement(map->get_key_type()) || type_needs_swift_refinement(map->get_val_type());
+    } else if (ttype->is_set()) {
+      t_set *set = (t_set *)ttype;
+      return type_needs_swift_refinement(set->get_elem_type());
+    } else if (ttype->is_list()) {
+      t_list *list = (t_list *)ttype;
+      return type_needs_swift_refinement(list->get_elem_type());
+    } else {
+      return false;
+    }
+  }
+
 private:
   std::string cocoa_prefix_;
   std::string constants_declarations_;
@@ -262,6 +302,7 @@ private:
 
   std::ofstream f_header_;
   std::ofstream f_impl_;
+  std::ofstream f_swift_refinement_;
 
   bool log_unexpected_;
   bool validate_required_;
@@ -271,6 +312,7 @@ private:
   bool pods_;
   bool mutable_collections_;
   bool nullability_;
+  bool swift_refinement_;
 };
 
 /**
@@ -301,6 +343,17 @@ void t_cocoa_generator::init_generator() {
   f_impl_ << cocoa_imports() << cocoa_thrift_imports() << "#import \"" << f_header_name << "\""
           << endl << endl;
 
+  // ...and an optional .swift refinement file
+  if (swift_refinement_) {
+    string f_swift_refinement_name = cocoa_prefix_ + capitalize(program_name_) + ".swift";
+    string f_swift_refinement_fullname = get_out_dir() + f_swift_refinement_name;
+    f_swift_refinement_.open(f_swift_refinement_fullname.c_str());
+
+    f_swift_refinement_ << autogen_comment() << endl;
+
+    f_swift_refinement_ << "import Foundation\n"
+            << endl << endl;
+  }
   error_constant_ = 60000;
 }
 
@@ -564,6 +617,9 @@ void t_cocoa_generator::generate_consts(std::vector<t_const*> consts) {
 void t_cocoa_generator::generate_struct(t_struct* tstruct) {
   generate_cocoa_struct_interface(f_header_, tstruct, false);
   generate_cocoa_struct_implementation(f_impl_, tstruct, false);
+  if (swift_refinement_) {
+    generate_cocoa_struct_swift_refinement(f_swift_refinement_, tstruct);
+  }
 }
 
 /**
@@ -625,6 +681,50 @@ void t_cocoa_generator::generate_cocoa_struct_interface(ofstream& out,
   out << endl;
 
   out << "@end" << endl << endl;
+}
+
+/**
+ * Generate the Swift refinement for a struct
+ *
+ * @param tstruct The struct definition
+ */
+void t_cocoa_generator::generate_cocoa_struct_swift_refinement(ofstream& out,
+                                                               t_struct* tstruct) {
+
+  const vector<t_field*>& members = tstruct->get_members();
+  if (members.size() == 0) {
+    return;
+  }
+
+  vector<t_field*>::const_iterator m_iter;
+  bool any_types_needing_refinement = false;
+  for (m_iter = members.begin(); m_iter != members.end(); ++m_iter) {
+    if ((*m_iter)->get_type()->is_container() &&
+        type_needs_swift_refinement((*m_iter)->get_type())) {
+        any_types_needing_refinement = true;
+    }
+  }
+
+  if (!any_types_needing_refinement) {
+    return;
+  }
+
+  out << "public extension " << cocoa_prefix_ << tstruct->get_name() << " {" << endl;
+
+  out << endl;
+
+  // properties
+  indent_up();
+  for (m_iter = members.begin(); m_iter != members.end(); ++m_iter) {
+    if ((*m_iter)->get_type()->is_container() &&
+        type_needs_swift_refinement((*m_iter)->get_type())) {
+      out << declare_property_swift_refinement(*m_iter) << endl;
+      out << endl;
+    }
+  }
+  indent_down();
+
+  out << "}" << endl << endl;
 }
 
 /**
@@ -2654,6 +2754,42 @@ string t_cocoa_generator::type_name(t_type* ttype, bool class_ref, bool needs_mu
 }
 
 /**
+ * Returns a Swift type name
+ *
+ * @param ttype The type
+ * @param class_ref Do we want a Class reference istead of a type reference?
+ * @return Objective-C type name, i.e. NSDictionary<Key,Value> *
+ */
+string t_cocoa_generator::type_name_swift(t_type* ttype) {
+  string result;
+  if (ttype->is_base_type()) {
+    return base_type_name_swift((t_base_type*)ttype);
+  } else if (ttype->is_enum()) {
+    return cocoa_prefix_ + ttype->get_name();
+  } else if (ttype->is_map()) {
+    t_map *map = (t_map *)ttype;
+    result = "[" + element_type_name_swift(map->get_key_type()) + ": " + element_type_name_swift(map->get_val_type()) + "]";
+  } else if (ttype->is_set()) {
+    t_set *set = (t_set *)ttype;
+    result = "Set";
+    result += "<" + element_type_name_swift(set->get_elem_type()) + ">";
+  } else if (ttype->is_list()) {
+    t_list *list = (t_list *)ttype;
+    result = "[" + element_type_name_swift(list->get_elem_type()) + "]";
+  } else {
+    // Check for prefix
+    t_program* program = ttype->get_program();
+    if (program != NULL) {
+      result = program->get_namespace("cocoa") + ttype->get_name();
+    } else {
+      result = ttype->get_name();
+    }
+  }
+
+  return result;
+}
+
+/**
  * Returns an Objective-C type name for container types
  *
  * @param ttype the type
@@ -2701,6 +2837,52 @@ string t_cocoa_generator::element_type_name(t_type* etype) {
 }
 
 /**
+ * Returns an Swift type name for container types
+ *
+ * @param ttype the type
+ */
+string t_cocoa_generator::element_type_name_swift(t_type* etype) {
+
+  t_type* ttype = etype->get_true_type();
+
+  if (etype->is_typedef() && type_is_reference(ttype)) {
+    return type_name(etype);
+  }
+
+  string result;
+  if (ttype->is_base_type()) {
+    t_base_type* tbase = (t_base_type*)ttype;
+    switch (tbase->get_base()) {
+    case t_base_type::TYPE_STRING:
+      if (tbase->is_binary()) {
+        result = "Data";
+      }
+      else {
+        result = "String";
+      }
+      break;
+    default:
+      result = type_name_swift(ttype);
+      break;
+    }
+  } else if (ttype->is_enum()) {
+    result = type_name_swift(ttype);
+  } else if (ttype->is_map()) {
+    t_map *map = (t_map *)ttype;
+    result = "[" + element_type_name_swift(map->get_key_type()) + ": " + element_type_name_swift(map->get_val_type()) + "]";
+  } else if (ttype->is_set()) {
+    t_set *set = (t_set *)ttype;
+    result = "Set<" + element_type_name(set->get_elem_type()) + ">";
+  } else if (ttype->is_list()) {
+    t_list *list = (t_list *)ttype;
+    result = "[" + element_type_name(list->get_elem_type()) + "]";
+  } else if (ttype->is_struct() || ttype->is_xception()) {
+    result = cocoa_prefix_ + ttype->get_name();
+  }
+
+  return result;
+}
+/**
  * Returns the Objective-C type that corresponds to the thrift type.
  *
  * @param tbase The base type
@@ -2734,6 +2916,39 @@ string t_cocoa_generator::base_type_name(t_base_type* type) {
   }
 }
 
+/**
+ * Returns the Swift type that corresponds to the thrift type.
+ *
+ * @param tbase The base type
+ */
+string t_cocoa_generator::base_type_name_swift(t_base_type* type) {
+  t_base_type::t_base tbase = type->get_base();
+
+  switch (tbase) {
+  case t_base_type::TYPE_VOID:
+    return "Void";
+  case t_base_type::TYPE_STRING:
+    if (type->is_binary()) {
+      return "Data";
+    } else {
+      return "String";
+    }
+  case t_base_type::TYPE_BOOL:
+    return "Bool";
+  case t_base_type::TYPE_I8:
+    return "Int8";
+  case t_base_type::TYPE_I16:
+    return "Int16";
+  case t_base_type::TYPE_I32:
+    return "Int32";
+  case t_base_type::TYPE_I64:
+    return "Int64";
+  case t_base_type::TYPE_DOUBLE:
+    return "Double";
+  default:
+    throw "compiler error: no Objective-C name for base type " + t_base_type::t_base_name(tbase);
+  }
+}
 /**
  * Prints the value of a constant with the given type. Note that type checking
  * is NOT performed in this function as it is always run beforehand using the
@@ -3053,7 +3268,14 @@ string t_cocoa_generator::declare_property(t_field* tfield) {
   }
 
   render << "nonatomic) " << type_name(tfield->get_type(), false, mutable_collections_) << " "
-  << tfield->get_name() << ";";
+         << tfield->get_name();
+
+  if (swift_refinement_ &&
+      tfield->get_type()->is_container() &&
+      type_needs_swift_refinement(tfield->get_type())) {
+      render << " NS_REFINED_FOR_SWIFT";
+  }
+  render << ";";
 
   // Check if the property name is an Objective-C return +1 count signal
   if ((tfield->get_name().length() >= 3 && tfield->get_name().substr(0,3) == "new") ||
@@ -3075,6 +3297,48 @@ string t_cocoa_generator::declare_property(t_field* tfield) {
       render << "- (" + nullable + type_name(tfield->get_type()) + ") " + decapitalize(tfield->get_name()) + " __attribute__((objc_method_family(none)));";
     }
   }
+
+  return render.str();
+}
+
+/**
+ * Declares a Swift property refinement.
+ *
+ * @param tfield The field to declare a property for
+ */
+string t_cocoa_generator::declare_property_swift_refinement(t_field* tfield) {
+  t_type *ttype = tfield->get_type();
+
+  // fixme
+  if (!ttype->is_list()) {
+    return "";
+  }
+
+  string nullable = (tfield->get_req() == t_field::T_OPTIONAL) ? "?" : "";
+  
+  std::ostringstream render;
+  render << indent() << "public var " << tfield->get_name() << ": " 
+         << type_name_swift(tfield->get_type()) 
+         << nullable
+         << " {" << endl;
+
+
+  if (ttype->is_list()) {
+    t_list *list = (t_list*)ttype;
+    indent_up();
+    if (list->get_elem_type()->is_enum()) {
+      render << indent() << "get { return __" << tfield->get_name() << nullable << ".map { " 
+            << type_name_swift(list->get_elem_type()) << "(rawValue: Int32(truncating: $0))! } }" << endl;
+      render << indent() << "set { __" << tfield->get_name() << " = newValue" << nullable << ".map { $0.rawValue as NSNumber } }" << endl;
+    } else {
+      render << indent() << "get { return __" << tfield->get_name() << nullable << ".map { " 
+            << type_name_swift(list->get_elem_type()) << "(truncating: $0) } }" << endl;
+      render << indent() << "set { __" << tfield->get_name() << " = newValue" << nullable << ".map { $0 as NSNumber } }" << endl;
+    }
+    indent_down();
+  }
+
+  render << indent() << "}";
 
   return render.str();
 }
