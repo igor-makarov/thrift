@@ -13,13 +13,18 @@ The Apache Thrift software framework, for scalable cross-language services devel
   s.osx.deployment_target     = '10.8'
   s.watchos.deployment_target = '2.0'
   s.ios.framework     = 'CFNetwork'
-  s.watchos.framework = 'CFNetwork'
   s.osx.framework     = 'CoreServices'
   s.source        = { :git => "https://github.com/apache/thrift.git", :tag => "thrift-0.11.0" }
 
   s.default_subspecs = ['ObjC']
   s.subspec 'ObjC' do |sp|
     sp.source_files  = 'lib/cocoa/src/**/*.{h,m}'
+    sp.watchos.exclude_files = [
+      'lib/cocoa/src/server/**/*.*',
+      'lib/cocoa/src/transport/THTTPTransport.{h,m}',
+      'lib/cocoa/src/transport/TSocketTransport.{h,m}',
+      'lib/cocoa/src/transport/TSSLSocketTransport.{h,m}',
+    ]
   end
 
   s.subspec 'Swift' do |sp|
