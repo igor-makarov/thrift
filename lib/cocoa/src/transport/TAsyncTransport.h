@@ -32,7 +32,7 @@ NS_ASSUME_NONNULL_BEGIN
 @end
 
 
-typedef void (^TAsyncCompletionBlock)();
+typedef void (^TAsyncCompletionBlock)(id<TAsyncTransport> __nonnull);
 typedef void (^TAsyncFailureBlock)(NSError * __nonnull);
 
 
