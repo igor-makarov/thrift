@@ -22,6 +22,7 @@ The Apache Thrift software framework, for scalable cross-language services devel
     sp.watchos.exclude_files = [
       'lib/cocoa/src/server/**/*.*',
       'lib/cocoa/src/transport/THTTPTransport.{h,m}',
+      'lib/cocoa/src/transport/TNSStreamTransport.{h,m}',
       'lib/cocoa/src/transport/TSocketTransport.{h,m}',
       'lib/cocoa/src/transport/TSSLSocketTransport.{h,m}',
     ]
