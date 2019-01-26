@@ -3317,7 +3317,7 @@ string t_cocoa_generator::declare_property_swift_refinement(t_field* tfield) {
   string nullable = (tfield->get_req() == t_field::T_OPTIONAL) ? "?" : "";
   
   std::ostringstream render;
-  render << indent() << "public var " << tfield->get_name() << ": " 
+  render << indent() << "var " << tfield->get_name() << ": " 
          << type_name_swift(tfield->get_type()) 
          << nullable
          << " {" << endl;
