@@ -28,8 +28,4 @@ The Apache Thrift software framework, for scalable cross-language services devel
       'lib/cocoa/src/transport/TSSLSocketTransport.{h,m}',
     ]
   end
-
-  s.subspec 'Swift' do |sp|
-    sp.source_files  = 'lib/cocoa/src/**/*.swift'
-  end
 end
