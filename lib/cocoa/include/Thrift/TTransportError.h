@@ -17,19 +17,27 @@
  * under the License.
  */
 
-#import <Foundation/Foundation.h>
-#import "TProtocol.h"
-
-NS_ASSUME_NONNULL_BEGIN
+#import <Thrift/TError.h>
 
 
-@protocol TProcessor <NSObject>
-
--(BOOL) processOnInputProtocol:(id <TProtocol>)inProtocol
-                outputProtocol:(id <TProtocol>)outProtocol
-                         error:(NSError **)error;
-
-@end
+extern NSString *TTransportErrorDomain;
 
 
-NS_ASSUME_NONNULL_END
+typedef NS_ENUM (int, TTransportError) {
+  TTransportErrorUnknown        = 0,
+  TTransportErrorNotOpen        = 1,
+  TTransportErrorAlreadyOpen    = 2,
+  TTransportErrorTimedOut       = 3,
+  TTransportErrorEndOfFile      = 4,
+};
+
+
+extern NSString *TTransportErrorExtendedErrorKey;
+extern NSString *TTransportErrorHttpErrorKey;
+
+
+typedef NS_ENUM(int, THttpTransportError) {
+  THttpTransportErrorInvalidResponse  = 1001,
+  THttpTransportErrorInvalidStatus    = 1002,
+  THttpTransportErrorAuthentication   = 1003,
+};

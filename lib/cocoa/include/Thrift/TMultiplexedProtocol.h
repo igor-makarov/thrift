@@ -18,14 +18,19 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "TTransport.h"
+
+#import <Thrift/TProtocolDecorator.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 
-@interface TFramedTransport : NSObject <TTransport>
+extern NSString *TMultiplexedProtocolSeperator;
 
--(id) initWithTransport:(id <TTransport>)transport;
+
+@interface TMultiplexedProtocol : TProtocolDecorator
+
+-(id) initWithProtocol:(id <TProtocol>)protocol
+           serviceName:(NSString *)name;
 
 @end
 

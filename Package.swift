@@ -3,15 +3,17 @@ import PackageDescription
 
 // This Package.swift mirrors the `ThriftObjC` CocoaPods podspec's
 // default `ObjC` subspec: it exposes the Objective-C Cocoa library
-// under the module name `Thrift`, sourced from `lib/cocoa/src`.
+// under the module name `Thrift`. Objective-C sources live in
+// `lib/cocoa/src`; public headers live in `lib/cocoa/include/Thrift`
+// so consumers can use `#import <Thrift/Header.h>`.
 //
 // SwiftPM can't mix Objective-C and Swift in a single target and can't
 // platform-conditionally include source files, so — following the
 // pattern used by BlocksKit's Package.swift — we simplify:
 //
-//   * Only the Objective-C `.{h,m}` files are vended (the Swift sources
+//   * Only the Objective-C `.m` files are compiled (the Swift sources
 //     under `lib/cocoa/src/*.swift` are excluded, matching the pod's
-//     `ObjC` subspec which also only globs `*.{h,m}`).
+//     `ObjC` subspec).
 //   * The pod's watchOS subspec excludes the server and several
 //     socket-based transports because CFNetwork isn't available on
 //     watchOS. SwiftPM can't do per-platform source exclusions, so
@@ -38,28 +40,21 @@ let package = Package(
     targets: [
         .target(
             name: "Thrift",
-            path: "lib/cocoa/src",
+            path: "lib/cocoa",
             exclude: [
-                "TBinary.swift",
-                "TEnum.swift",
-                "TList.swift",
-                "TMap.swift",
-                "TProtocol.swift",
-                "TSerializable.swift",
-                "TSet.swift",
-                "TStruct.swift",
+                "src/TBinary.swift",
+                "src/TEnum.swift",
+                "src/TList.swift",
+                "src/TMap.swift",
+                "src/TProtocol.swift",
+                "src/TSerializable.swift",
+                "src/TSet.swift",
+                "src/TStruct.swift",
             ],
-            publicHeadersPath: ".",
+            sources: ["src"],
+            publicHeadersPath: "include",
             cSettings: [
-                // Quoted `#import "Foo.h"` statements in `lib/cocoa/src`
-                // reach across sibling subdirectories (e.g. `TProtocol.h`
-                // lives under `protocol/`, but top-level headers import
-                // it unqualified). Expose each subdir on the header
-                // search path so those imports resolve for the target's
-                // own translation units.
-                .headerSearchPath("protocol"),
-                .headerSearchPath("transport"),
-                .headerSearchPath("server"),
+                .headerSearchPath("include"),
             ],
             linkerSettings: [
                 .linkedFramework("CFNetwork", .when(platforms: [.iOS])),

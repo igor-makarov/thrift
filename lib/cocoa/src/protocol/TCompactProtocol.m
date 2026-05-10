@@ -17,8 +17,8 @@
  * under the License.
  */
 
-#import "TCompactProtocol.h"
-#import "TProtocolError.h"
+#import <Thrift/TCompactProtocol.h>
+#import <Thrift/TProtocolError.h>
 
 static const UInt8 COMPACT_PROTOCOL_ID = 0x82;
 static const UInt8 COMPACT_VERSION = 1;

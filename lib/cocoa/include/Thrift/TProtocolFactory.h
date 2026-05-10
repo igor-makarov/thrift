@@ -17,31 +17,18 @@
  * under the License.
  */
 
-#import "TProtocol.h"
-#import "TTransport.h"
-#import "TProtocolFactory.h"
+#import <Foundation/Foundation.h>
+#import <Thrift/TProtocol.h>
+#import <Thrift/TTransport.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 
-@interface TBinaryProtocol : NSObject <TProtocol>
+@protocol TProtocolFactory <NSObject>
 
-@property (assign, nonatomic) UInt32 messageSizeLimit;
+@property (readonly, nonatomic) NSString *protocolName;
 
--(id) initWithTransport:(id <TTransport>)transport;
-
--(id) initWithTransport:(id <TTransport>)transport
-             strictRead:(BOOL)strictRead
-            strictWrite:(BOOL)strictWrite;
-
-@end;
-
-
-@interface TBinaryProtocolFactory : NSObject <TProtocolFactory>
-
-+(TBinaryProtocolFactory *) sharedFactory;
-
--(TBinaryProtocol *) newProtocolOnTransport:(id <TTransport>)transport;
+-(id<TProtocol>) newProtocolOnTransport:(id<TTransport>)transport;
 
 @end
 

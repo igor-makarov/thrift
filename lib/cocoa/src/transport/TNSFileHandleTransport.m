@@ -18,8 +18,8 @@
  */
 
 
-#import "TNSFileHandleTransport.h"
-#import "TTransportError.h"
+#import <Thrift/TNSFileHandleTransport.h>
+#import <Thrift/TTransportError.h>
 
 
 @interface TNSFileHandleTransport ()

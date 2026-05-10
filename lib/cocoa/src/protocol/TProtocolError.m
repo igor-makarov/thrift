@@ -17,7 +17,7 @@
  * under the License.
  */
 
-#import "TProtocolError.h"
+#import <Thrift/TProtocolError.h>
 
 
 NSString *TProtocolErrorDomain = @"TProtocolErrorDomain";

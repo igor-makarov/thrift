@@ -16,16 +16,27 @@ The Apache Thrift software framework, for scalable cross-language services devel
   s.osx.framework     = 'CoreServices'
   s.source        = { :git => "https://github.com/igor-makarov/thrift", :tag => "#{s.version}" }
   s.module_name = "Thrift"
+  s.header_dir = "Thrift"
 
   s.default_subspecs = ['ObjC']
   s.subspec 'ObjC' do |sp|
-    sp.source_files  = 'lib/cocoa/src/**/*.{h,m}'
+    sp.source_files = [
+      'lib/cocoa/src/**/*.m',
+      'lib/cocoa/include/Thrift/**/*.h',
+    ]
+    sp.public_header_files = 'lib/cocoa/include/Thrift/**/*.h'
+    sp.header_mappings_dir = 'lib/cocoa/include/Thrift'
     sp.watchos.exclude_files = [
       'lib/cocoa/src/server/**/*.*',
-      'lib/cocoa/src/transport/THTTPTransport.{h,m}',
-      'lib/cocoa/src/transport/TNSStreamTransport.{h,m}',
-      'lib/cocoa/src/transport/TSocketTransport.{h,m}',
-      'lib/cocoa/src/transport/TSSLSocketTransport.{h,m}',
+      'lib/cocoa/include/Thrift/TSocketServer.h',
+      'lib/cocoa/src/transport/THTTPTransport.m',
+      'lib/cocoa/include/Thrift/THTTPTransport.h',
+      'lib/cocoa/src/transport/TNSStreamTransport.m',
+      'lib/cocoa/include/Thrift/TNSStreamTransport.h',
+      'lib/cocoa/src/transport/TSocketTransport.m',
+      'lib/cocoa/include/Thrift/TSocketTransport.h',
+      'lib/cocoa/src/transport/TSSLSocketTransport.m',
+      'lib/cocoa/include/Thrift/TSSLSocketTransport.h',
     ]
   end
 end

@@ -17,8 +17,8 @@
  * under the License.
  */
 
-#import "TFramedTransport.h"
-#import "TTransportError.h"
+#import <Thrift/TFramedTransport.h>
+#import <Thrift/TTransportError.h>
 
 #define HEADER_SIZE 4
 #define INIT_FRAME_SIZE 1024

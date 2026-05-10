@@ -17,12 +17,26 @@
  * under the License.
  */
 
-#import <Foundation/Foundation.h>
-#import "TProcessorFactory.h"
+#import <Thrift/TProtocol.h>
+#import <Thrift/TTransport.h>
+#import <Thrift/TProtocolFactory.h>
+
+NS_ASSUME_NONNULL_BEGIN
 
 
-@interface TSharedProcessorFactory : NSObject <TProcessorFactory>
+@interface TCompactProtocol : NSObject <TProtocol>
 
--(id) initWithSharedProcessor:(id<TProcessor>)sharedProcessor;
+-(id) initWithTransport:(id <TTransport>)transport;
 
 @end
+
+@interface TCompactProtocolFactory : NSObject <TProtocolFactory>
+
++(TCompactProtocolFactory *) sharedFactory;
+
+-(TCompactProtocol *) newProtocolOnTransport:(id <TTransport>)transport;
+
+@end
+
+
+NS_ASSUME_NONNULL_END

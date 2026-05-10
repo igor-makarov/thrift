@@ -17,11 +17,19 @@
  * under the License.
  */
 
-#import "TProtocol.h"
-#import "TApplicationError.h"
+#import <Foundation/Foundation.h>
+#import <Thrift/TProtocol.h>
 
-@interface TBaseClient : NSObject
+NS_ASSUME_NONNULL_BEGIN
 
--(NSError *) checkIncomingMessageException:(id<TProtocol>)protocol;
+
+@protocol TProcessor <NSObject>
+
+-(BOOL) processOnInputProtocol:(id <TProtocol>)inProtocol
+                outputProtocol:(id <TProtocol>)outProtocol
+                         error:(NSError **)error;
 
 @end
+
+
+NS_ASSUME_NONNULL_END

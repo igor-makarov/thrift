@@ -17,8 +17,8 @@
  * under the License.
  */
 
-#import "TBaseClient.h"
-#import "TApplicationError.h"
+#import <Thrift/TBaseClient.h>
+#import <Thrift/TApplicationError.h>
 
 
 @interface TBaseClient ()

@@ -17,8 +17,8 @@
  * under the License.
  */
 
-#import "THTTPSessionTransport.h"
-#import "TTransportError.h"
+#import <Thrift/THTTPSessionTransport.h>
+#import <Thrift/TTransportError.h>
 
 
 @interface THTTPSessionTransportFactory ()

@@ -17,8 +17,8 @@
  * under the License.
  */
 
-#import "TBinaryProtocol.h"
-#import "TProtocolError.h"
+#import <Thrift/TBinaryProtocol.h>
+#import <Thrift/TProtocolError.h>
 
 
 static SInt32 VERSION_1 = 0x80010000;

@@ -17,7 +17,7 @@
  * under the License.
  */
 
-#import "TProtocol.h"
+#import <Thrift/TProtocol.h>
 
 extern NSString *TApplicationErrorDomain;
 

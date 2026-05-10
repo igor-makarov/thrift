@@ -17,30 +17,30 @@
  * under the License.
  */
 
-#import <Foundation/Foundation.h>
+#import <Thrift/TTransport.h>
 
-#import "TProtocol.h"
-
-@protocol TBase <NSObject>
-
-/**
- * De-serialize object from the given input protocol
- *
- * @param inProtocol input protocol used for reading
- */
--(BOOL) read:(id <TProtocol>)inProtocol error:(NSError **)error;
-
-/**
- * Serialize object to the given protocol
- *
- * @param outProtocol output protocol used for writing
- */
--(BOOL) write:(id <TProtocol>)outProtocol error:(NSError **)error;
+NS_ASSUME_NONNULL_BEGIN
 
 
-/**
- * Validate required fields
- */
--(BOOL) validate:(NSError *__autoreleasing *)__thriftError;
+@protocol TAsyncTransport;
+
+
+@protocol TAsyncTransportFactory <NSObject>
+
+-(id<TAsyncTransport>) newTransport;
 
 @end
+
+
+typedef void (^TAsyncCompletionBlock)(id<TAsyncTransport> __nonnull);
+typedef void (^TAsyncFailureBlock)(NSError * __nonnull);
+
+
+@protocol TAsyncTransport <TTransport>
+
+-(void) flushWithCompletion:(TAsyncCompletionBlock)completed failure:(TAsyncFailureBlock)failure;
+
+@end
+
+
+NS_ASSUME_NONNULL_END

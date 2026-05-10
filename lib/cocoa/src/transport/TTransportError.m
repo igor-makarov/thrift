@@ -17,7 +17,7 @@
  * under the License.
  */
 
-#import "TTransportError.h"
+#import <Thrift/TTransportError.h>
 
 
 NSString *TTransportErrorDomain = @"TTransportErrorDomain";

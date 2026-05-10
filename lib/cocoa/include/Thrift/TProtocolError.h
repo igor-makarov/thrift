@@ -17,7 +17,7 @@
  * under the License.
  */
 
-#import "TError.h"
+#import <Thrift/TError.h>
 
 
 extern NSString *TProtocolErrorDomain;

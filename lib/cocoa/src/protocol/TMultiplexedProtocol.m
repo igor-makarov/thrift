@@ -17,9 +17,9 @@
  * under the License.
  */
 
-#import "TMultiplexedProtocol.h"
+#import <Thrift/TMultiplexedProtocol.h>
 
-#import "TProtocol.h"
+#import <Thrift/TProtocol.h>
 
 NSString *TMultiplexedProtocolSeperator = @":";
 

@@ -1,0 +1,10 @@
+// Custom module map for the SwiftPM `Thrift` target.
+//
+// Public headers live in the flat `Thrift/` include namespace so both
+// module imports and textual imports such as `#import <Thrift/TProtocol.h>`
+// resolve against the same public header surface.
+framework module Thrift {
+    umbrella "Thrift"
+    export *
+    module * { export * }
+}

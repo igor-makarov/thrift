@@ -17,14 +17,17 @@
  * under the License.
  */
 
-#import "TTransportError.h"
+#import <Thrift/TProtocol.h>
+#import <Thrift/TTransport.h>
+
+NS_ASSUME_NONNULL_BEGIN
 
 
-extern NSString *TSSLSocketTransportErrorDomain;
+@interface TProtocolUtil : NSObject
+
++(BOOL) skipType:(int)type onProtocol:(id <TProtocol>)protocol error:(NSError **)error;
+
+@end;
 
 
-typedef NS_ENUM (int, TSSLSocketTransportError) {
-  TSSLSocketTransportErrorHostanameResolution  = -10000,
-  TSSLSocketTransportErrorSocketCreate         = -10001,
-  TSSLSocketTransportErrorConnect              = -10002,
-};
+NS_ASSUME_NONNULL_END

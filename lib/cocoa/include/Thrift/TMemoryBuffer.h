@@ -18,18 +18,18 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "TNSStreamTransport.h"
+#import <Thrift/TTransport.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 
-@interface TSSLSocketTransport : TNSStreamTransport <NSStreamDelegate>
+@interface TMemoryBuffer : NSObject <TTransport>
 
--(id) initWithHostname:(NSString *)hostname
-                  port:(int)port
-                 error:(NSError **)error;
+-(NSData *) buffer;
 
--(BOOL) isOpen;
+-(id) initWithData:(NSData *)data;
+
+-(id) initWithDataNoCopy:(NSMutableData *)data;
 
 @end
 

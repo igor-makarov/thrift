@@ -17,20 +17,11 @@
  * under the License.
  */
 
-#import <Foundation/Foundation.h>
-#import "TProtocol.h"
-#import "TTransport.h"
+#import <Thrift/TProtocol.h>
+#import <Thrift/TApplicationError.h>
 
-NS_ASSUME_NONNULL_BEGIN
+@interface TBaseClient : NSObject
 
-
-@protocol TProtocolFactory <NSObject>
-
-@property (readonly, nonatomic) NSString *protocolName;
-
--(id<TProtocol>) newProtocolOnTransport:(id<TTransport>)transport;
+-(NSError *) checkIncomingMessageException:(id<TProtocol>)protocol;
 
 @end
-
-
-NS_ASSUME_NONNULL_END

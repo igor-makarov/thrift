@@ -18,26 +18,11 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "TTransport.h"
-
-NS_ASSUME_NONNULL_BEGIN
+#import <Thrift/TProcessorFactory.h>
 
 
-@interface TNSStreamTransport : NSObject <TTransport>
+@interface TSharedProcessorFactory : NSObject <TProcessorFactory>
 
-@property (strong, nonatomic) NSInputStream *input;
-@property (strong, nonatomic) NSOutputStream *output;
-
--(id) initWithInputStream:(nullable NSInputStream *)input
-             outputStream:(nullable NSOutputStream *)output;
-
--(id) initWithInputStream:(NSInputStream *)input;
-
--(id) initWithOutputStream:(NSOutputStream *)output;
-
--(void) close;
+-(id) initWithSharedProcessor:(id<TProcessor>)sharedProcessor;
 
 @end
-
-
-NS_ASSUME_NONNULL_END

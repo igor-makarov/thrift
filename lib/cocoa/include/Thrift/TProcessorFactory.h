@@ -17,17 +17,17 @@
  * under the License.
  */
 
-#import "TProtocol.h"
-#import "TTransport.h"
+#import <Foundation/Foundation.h>
+#import <Thrift/TProcessor.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 
-@interface TProtocolUtil : NSObject
+@protocol TProcessorFactory <NSObject>
 
-+(BOOL) skipType:(int)type onProtocol:(id <TProtocol>)protocol error:(NSError **)error;
+-(id<TProcessor>) processorForTransport:(id<TTransport>)transport;
 
-@end;
+@end
 
 
 NS_ASSUME_NONNULL_END

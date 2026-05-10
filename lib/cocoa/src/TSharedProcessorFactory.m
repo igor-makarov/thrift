@@ -18,7 +18,7 @@
  */
 
 
-#import "TSharedProcessorFactory.h"
+#import <Thrift/TSharedProcessorFactory.h>
 
 
 @interface TSharedProcessorFactory ()

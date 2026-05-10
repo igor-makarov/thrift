@@ -17,7 +17,7 @@
  * under the License.
  */
 
-#import "TProtocolDecorator.h"
+#import <Thrift/TProtocolDecorator.h>
 
 
 @interface TProtocolDecorator ()

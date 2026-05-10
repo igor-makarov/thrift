@@ -23,10 +23,10 @@
 #if !TARGET_OS_WATCH
 
 #import <Foundation/Foundation.h>
-#import "TSocketServer.h"
-#import "TNSFileHandleTransport.h"
-#import "TProtocol.h"
-#import "TTransportError.h"
+#import <Thrift/TSocketServer.h>
+#import <Thrift/TNSFileHandleTransport.h>
+#import <Thrift/TProtocol.h>
+#import <Thrift/TTransportError.h>
 
 #import <sys/socket.h>
 #include <netinet/in.h>

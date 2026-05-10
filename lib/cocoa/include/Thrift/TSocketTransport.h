@@ -18,15 +18,17 @@
  */
 
 #import <Foundation/Foundation.h>
-
-#import "TProtocol.h"
+#import <Thrift/TNSStreamTransport.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 
-@interface TProtocolDecorator : NSObject <TProtocol>
+@interface TSocketTransport : TNSStreamTransport
 
--(id) initWithProtocol:(id <TProtocol>)protocol;
+-(id) initWithHostname:(NSString *)hostname
+                  port:(int)port;
+
+-(id) initWithPath:(NSString *)path;
 
 @end
 

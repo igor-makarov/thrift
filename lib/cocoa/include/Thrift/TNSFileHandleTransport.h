@@ -17,32 +17,22 @@
  * under the License.
  */
 
-#import <TargetConditionals.h>
-
-// `THTTPTransport`'s implementation relies on `NSURLConnection`'s
-// synchronous API which is unavailable on watchOS; the pod excludes
-// this pair in its watchOS subspec. Gate the public API to match.
-#if !TARGET_OS_WATCH
 
 #import <Foundation/Foundation.h>
-#import "TTransport.h"
+#import <Thrift/TTransport.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 
-@interface THTTPTransport : NSObject <TTransport>
+@interface TNSFileHandleTransport : NSObject <TTransport>
 
--(id) initWithURL:(NSURL *)aURL;
+-(id) initWithFileHandle:(NSFileHandle *)fileHandle;
 
--(id) initWithURL:(NSURL *)aURL
-        userAgent:(nullable NSString *)userAgent
-          timeout:(int)timeout;
+-(id) initWithInputFileHandle:(NSFileHandle *)inputFileHandle
+             outputFileHandle:(NSFileHandle *)outputFileHandle;
 
--(void) setURL:(NSURL *)aURL;
 
 @end
 
 
 NS_ASSUME_NONNULL_END
-
-#endif  // !TARGET_OS_WATCH

@@ -26,8 +26,8 @@
 #if !TARGET_OS_WATCH
 
 #import <Foundation/Foundation.h>
-#import "TProtocolFactory.h"
-#import "TProcessorFactory.h"
+#import <Thrift/TProtocolFactory.h>
+#import <Thrift/TProcessorFactory.h>
 
 #if !TARGET_OS_IPHONE
 #import <CoreServices/CoreServices.h>

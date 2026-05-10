@@ -17,7 +17,7 @@
  * under the License.
  */
 
-#import "TSSLSocketTransportError.h"
+#import <Thrift/TSSLSocketTransportError.h>
 
 
 NSString *TSSLSocketTransportErrorDomain = @"TSSLSocketTransportErrorDomain";

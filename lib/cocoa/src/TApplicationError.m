@@ -17,8 +17,8 @@
  * under the License.
  */
 
-#import "TApplicationError.h"
-#import "TProtocolUtil.h"
+#import <Thrift/TApplicationError.h>
+#import <Thrift/TProtocolUtil.h>
 
 
 NSString *TApplicationErrorDomain = @"TApplicationErrorDomain";

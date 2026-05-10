@@ -17,8 +17,8 @@
  * under the License.
  */
 
-#import "TNSStreamTransport.h"
-#import "TTransportError.h"
+#import <Thrift/TNSStreamTransport.h>
+#import <Thrift/TTransportError.h>
 
 
 @interface TNSStreamTransport ()

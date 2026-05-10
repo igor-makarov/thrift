@@ -17,28 +17,31 @@
  * under the License.
  */
 
-#import "TTransport.h"
+#import <Thrift/TProtocol.h>
+#import <Thrift/TTransport.h>
+#import <Thrift/TProtocolFactory.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 
-@protocol TAsyncTransport;
+@interface TBinaryProtocol : NSObject <TProtocol>
+
+@property (assign, nonatomic) UInt32 messageSizeLimit;
+
+-(id) initWithTransport:(id <TTransport>)transport;
+
+-(id) initWithTransport:(id <TTransport>)transport
+             strictRead:(BOOL)strictRead
+            strictWrite:(BOOL)strictWrite;
+
+@end;
 
 
-@protocol TAsyncTransportFactory <NSObject>
+@interface TBinaryProtocolFactory : NSObject <TProtocolFactory>
 
--(id<TAsyncTransport>) newTransport;
++(TBinaryProtocolFactory *) sharedFactory;
 
-@end
-
-
-typedef void (^TAsyncCompletionBlock)(id<TAsyncTransport> __nonnull);
-typedef void (^TAsyncFailureBlock)(NSError * __nonnull);
-
-
-@protocol TAsyncTransport <TTransport>
-
--(void) flushWithCompletion:(TAsyncCompletionBlock)completed failure:(TAsyncFailureBlock)failure;
+-(TBinaryProtocol *) newProtocolOnTransport:(id <TTransport>)transport;
 
 @end
 

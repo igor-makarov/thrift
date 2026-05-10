@@ -17,27 +17,30 @@
  * under the License.
  */
 
-#import "TError.h"
+#import <Foundation/Foundation.h>
+
+#import <Thrift/TProtocol.h>
+
+@protocol TBase <NSObject>
+
+/**
+ * De-serialize object from the given input protocol
+ *
+ * @param inProtocol input protocol used for reading
+ */
+-(BOOL) read:(id <TProtocol>)inProtocol error:(NSError **)error;
+
+/**
+ * Serialize object to the given protocol
+ *
+ * @param outProtocol output protocol used for writing
+ */
+-(BOOL) write:(id <TProtocol>)outProtocol error:(NSError **)error;
 
 
-extern NSString *TTransportErrorDomain;
+/**
+ * Validate required fields
+ */
+-(BOOL) validate:(NSError *__autoreleasing *)__thriftError;
 
-
-typedef NS_ENUM (int, TTransportError) {
-  TTransportErrorUnknown        = 0,
-  TTransportErrorNotOpen        = 1,
-  TTransportErrorAlreadyOpen    = 2,
-  TTransportErrorTimedOut       = 3,
-  TTransportErrorEndOfFile      = 4,
-};
-
-
-extern NSString *TTransportErrorExtendedErrorKey;
-extern NSString *TTransportErrorHttpErrorKey;
-
-
-typedef NS_ENUM(int, THttpTransportError) {
-  THttpTransportErrorInvalidResponse  = 1001,
-  THttpTransportErrorInvalidStatus    = 1002,
-  THttpTransportErrorAuthentication   = 1003,
-};
+@end

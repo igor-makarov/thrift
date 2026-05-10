@@ -17,8 +17,8 @@
  * under the License.
  */
 
-#import "TMemoryBuffer.h"
-#import "TTransportError.h"
+#import <Thrift/TMemoryBuffer.h>
+#import <Thrift/TTransportError.h>
 
 
 #define GARBAGE_BUFFER_SIZE 4096 // 4KiB

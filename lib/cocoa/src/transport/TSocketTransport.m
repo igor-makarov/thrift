@@ -24,7 +24,7 @@
 // (matching `s.watchos.exclude_files` in ThriftObjC.podspec).
 #if !TARGET_OS_WATCH
 
-#import "TSocketTransport.h"
+#import <Thrift/TSocketTransport.h>
 
 #if !TARGET_OS_IPHONE
 #import <CoreServices/CoreServices.h>

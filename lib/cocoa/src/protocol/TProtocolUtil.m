@@ -17,7 +17,7 @@
  * under the License.
  */
 
-#import "TProtocolUtil.h"
+#import <Thrift/TProtocolUtil.h>
 
 @implementation TProtocolUtil
 

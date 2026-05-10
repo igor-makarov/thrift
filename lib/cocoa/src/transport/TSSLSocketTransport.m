@@ -26,8 +26,8 @@
 
 #import <Foundation/Foundation.h>
 #import <CoreFoundation/CoreFoundation.h>
-#import "TSSLSocketTransport.h"
-#import "TSSLSocketTransportError.h"
+#import <Thrift/TSSLSocketTransport.h>
+#import <Thrift/TSSLSocketTransportError.h>
 #include <sys/socket.h>
 #include <netinet/in.h>
 #include <netdb.h>

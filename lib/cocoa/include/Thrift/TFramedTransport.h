@@ -18,28 +18,14 @@
  */
 
 #import <Foundation/Foundation.h>
-#import "TAsyncTransport.h"
+#import <Thrift/TTransport.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 
-typedef NSError *__nullable (^THTTPSessionTransportResponseValidateBlock) (NSHTTPURLResponse *response, NSData *responseData);
+@interface TFramedTransport : NSObject <TTransport>
 
-
-@interface THTTPSessionTransportFactory : NSObject<TAsyncTransportFactory>
-
-@property (strong, nonatomic) THTTPSessionTransportResponseValidateBlock responseValidate;
-
-+(void) setupDefaultsForSessionConfiguration:(NSURLSessionConfiguration *)config
-                            withProtocolName:(NSString *)protocolName;
-
--(id) initWithSession:(NSURLSession *)session
-                  URL:(NSURL *)aURL;
-
-@end
-
-
-@interface THTTPSessionTransport : NSObject <TAsyncTransport>
+-(id) initWithTransport:(id <TTransport>)transport;
 
 @end
 

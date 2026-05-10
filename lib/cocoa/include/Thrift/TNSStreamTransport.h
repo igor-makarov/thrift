@@ -17,20 +17,25 @@
  * under the License.
  */
 
-
 #import <Foundation/Foundation.h>
-#import "TTransport.h"
+#import <Thrift/TTransport.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 
-@interface TNSFileHandleTransport : NSObject <TTransport>
+@interface TNSStreamTransport : NSObject <TTransport>
 
--(id) initWithFileHandle:(NSFileHandle *)fileHandle;
+@property (strong, nonatomic) NSInputStream *input;
+@property (strong, nonatomic) NSOutputStream *output;
 
--(id) initWithInputFileHandle:(NSFileHandle *)inputFileHandle
-             outputFileHandle:(NSFileHandle *)outputFileHandle;
+-(id) initWithInputStream:(nullable NSInputStream *)input
+             outputStream:(nullable NSOutputStream *)output;
 
+-(id) initWithInputStream:(NSInputStream *)input;
+
+-(id) initWithOutputStream:(NSOutputStream *)output;
+
+-(void) close;
 
 @end
 

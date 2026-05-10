@@ -17,26 +17,32 @@
  * under the License.
  */
 
-#import "TProtocol.h"
-#import "TTransport.h"
-#import "TProtocolFactory.h"
+#import <TargetConditionals.h>
+
+// `THTTPTransport`'s implementation relies on `NSURLConnection`'s
+// synchronous API which is unavailable on watchOS; the pod excludes
+// this pair in its watchOS subspec. Gate the public API to match.
+#if !TARGET_OS_WATCH
+
+#import <Foundation/Foundation.h>
+#import <Thrift/TTransport.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 
-@interface TCompactProtocol : NSObject <TProtocol>
+@interface THTTPTransport : NSObject <TTransport>
 
--(id) initWithTransport:(id <TTransport>)transport;
+-(id) initWithURL:(NSURL *)aURL;
 
-@end
+-(id) initWithURL:(NSURL *)aURL
+        userAgent:(nullable NSString *)userAgent
+          timeout:(int)timeout;
 
-@interface TCompactProtocolFactory : NSObject <TProtocolFactory>
-
-+(TCompactProtocolFactory *) sharedFactory;
-
--(TCompactProtocol *) newProtocolOnTransport:(id <TTransport>)transport;
+-(void) setURL:(NSURL *)aURL;
 
 @end
 
 
 NS_ASSUME_NONNULL_END
+
+#endif  // !TARGET_OS_WATCH

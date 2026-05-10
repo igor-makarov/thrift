@@ -17,17 +17,14 @@
  * under the License.
  */
 
-#import <Foundation/Foundation.h>
-#import "TProcessor.h"
-
-NS_ASSUME_NONNULL_BEGIN
+#import <Thrift/TTransportError.h>
 
 
-@protocol TProcessorFactory <NSObject>
-
--(id<TProcessor>) processorForTransport:(id<TTransport>)transport;
-
-@end
+extern NSString *TSSLSocketTransportErrorDomain;
 
 
-NS_ASSUME_NONNULL_END
+typedef NS_ENUM (int, TSSLSocketTransportError) {
+  TSSLSocketTransportErrorHostanameResolution  = -10000,
+  TSSLSocketTransportErrorSocketCreate         = -10001,
+  TSSLSocketTransportErrorConnect              = -10002,
+};

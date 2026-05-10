@@ -18,19 +18,18 @@
  */
 
 #import <Foundation/Foundation.h>
-
-#import "TProtocolDecorator.h"
+#import <Thrift/TNSStreamTransport.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 
-extern NSString *TMultiplexedProtocolSeperator;
+@interface TSSLSocketTransport : TNSStreamTransport <NSStreamDelegate>
 
+-(id) initWithHostname:(NSString *)hostname
+                  port:(int)port
+                 error:(NSError **)error;
 
-@interface TMultiplexedProtocol : TProtocolDecorator
-
--(id) initWithProtocol:(id <TProtocol>)protocol
-           serviceName:(NSString *)name;
+-(BOOL) isOpen;
 
 @end
 
