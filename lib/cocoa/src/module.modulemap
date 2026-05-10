@@ -1,0 +1,13 @@
+// Custom module map for the SwiftPM `Thrift` target.
+//
+// SwiftPM otherwise treats the file `Thrift.h` (which matches the
+// module name) as an umbrella header and then errors out because the
+// public headers path has subdirectories (`protocol/`, `transport/`,
+// `server/`) next to it. `Thrift.h` isn't really an umbrella header —
+// it only defines a version macro — so we declare an umbrella
+// *directory* instead, which recursively picks up every public header.
+framework module Thrift {
+    umbrella "."
+    export *
+    module * { export * }
+}

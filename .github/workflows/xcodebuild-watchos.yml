@@ -1,0 +1,37 @@
+name: xcodebuild watchOS
+
+# Build-only: the Package.swift has no test target (the pod ships only
+# an Objective-C library), and XCTest isn't available on watchOS anyway.
+# Building proves the library cross-compiles cleanly for watchOS.
+#
+# The pod's watchOS subspec excludes the server + several socket/HTTP
+# transports because CFNetwork and NSURLConnection's synchronous API
+# aren't available on watchOS. SwiftPM can't express per-platform source
+# exclusions, so those files are source-gated with `#if !TARGET_OS_WATCH`
+# instead — this job makes sure that gating stays correct.
+
+jobs:
+  xcodebuild-watchos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+
+      # xcodebuild drives the SwiftPM package directly via the synthetic
+      # scheme generated from Package.swift — no .xcodeproj / .xcworkspace
+      # required.
+      - run: xcodebuild build -scheme Thrift -destination 'generic/platform=watchOS'
+
+"on":
+  push:
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 9 * * 0,1,2,3,4'

@@ -16,6 +16,14 @@
  * specific language governing permissions and limitations
  * under the License.
  */
+#import <TargetConditionals.h>
+
+// CFNetwork is unavailable on watchOS, and this transport bottoms out on
+// NSStream+socket plumbing that the pod excludes for watchOS too. Gate the
+// whole translation unit so the SwiftPM target can be built for watchOS
+// (matching `s.watchos.exclude_files` in ThriftObjC.podspec).
+#if !TARGET_OS_WATCH
+
 #import "TSocketTransport.h"
 
 #if !TARGET_OS_IPHONE
@@ -129,3 +137,5 @@
 
 
 @end
+
+#endif  // !TARGET_OS_WATCH

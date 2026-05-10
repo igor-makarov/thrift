@@ -17,6 +17,14 @@
  * under the License.
  */
 
+#import <TargetConditionals.h>
+
+// CFNetwork isn't available on watchOS, and the whole TCP server is
+// excluded from the pod's watchOS subspec. Gate the public API so the
+// SwiftPM target can be built for watchOS (matching
+// `s.watchos.exclude_files` in ThriftObjC.podspec).
+#if !TARGET_OS_WATCH
+
 #import <Foundation/Foundation.h>
 #import "TProtocolFactory.h"
 #import "TProcessorFactory.h"
@@ -49,3 +57,5 @@ extern NSString *const TSockerServerTransportKey;
 
 
 NS_ASSUME_NONNULL_END
+
+#endif  // !TARGET_OS_WATCH

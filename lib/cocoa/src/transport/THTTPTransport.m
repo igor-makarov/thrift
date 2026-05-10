@@ -17,6 +17,11 @@
  * under the License.
  */
 
+#import <TargetConditionals.h>
+
+// Mirrors the guard in THTTPTransport.h; see that file for the rationale.
+#if !TARGET_OS_WATCH
+
 #import "THTTPTransport.h"
 #import "TTransportError.h"
 
@@ -180,3 +185,5 @@
 }
 
 @end
+
+#endif  // !TARGET_OS_WATCH

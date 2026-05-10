@@ -17,6 +17,11 @@
  * under the License.
  */
 
+#import <TargetConditionals.h>
+
+// Mirrors the guard in TSocketServer.h; see that file for the rationale.
+#if !TARGET_OS_WATCH
+
 #import <Foundation/Foundation.h>
 #import "TSocketServer.h"
 #import "TNSFileHandleTransport.h"
@@ -237,3 +242,5 @@ NSString *const TSockerServerTransportKey = @"TSockerServerTransport";
 }
 
 @end
+
+#endif  // !TARGET_OS_WATCH

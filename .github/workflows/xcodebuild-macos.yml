@@ -1,0 +1,31 @@
+name: xcodebuild macOS
+
+# Build-only: the Package.swift has no test target (the pod ships only
+# an Objective-C library), so `xcodebuild test` would have nothing to
+# run. Building proves the library cross-compiles cleanly for macOS.
+
+jobs:
+  xcodebuild-macos:
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: maxim-lobanov/setup-xcode@v1
+        with:
+          xcode-version: latest-stable
+
+      - name: Toolchain
+        run: |
+          sw_vers
+          xcodebuild -version
+
+      # xcodebuild drives the SwiftPM package directly via the synthetic
+      # scheme generated from Package.swift — no .xcodeproj / .xcworkspace
+      # required.
+      - run: xcodebuild build -scheme Thrift -destination 'platform=macOS'
+
+"on":
+  push:
+  pull_request:
+    branches: [main]
+  schedule:
+    - cron: '0 9 * * 0,1,2,3,4'
